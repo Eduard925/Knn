@@ -154,3 +154,24 @@ r_squared <- summary(AllModel)$r.squared
 print(summary(AllModel))
 cat(paste0("RMSE: ", rmse, "\n"))
 cat(paste0("R-squared: ", r_squared, "\n"))
+```
+- 1.2.5 Test the performance in your models by using cross-validation.
+```{r message=FALSE}
+# Import the librarys
+library (tidyverse)
+library (caret)
+library(psych)
+
+folder <- dirname(rstudioapi::getSourceEditorContext()$path)
+parentFolder <- dirname(folder)
+
+#Read CSV File
+Sensors1 <- read_csv(file = paste0(parentFolder, "/Datasets/Sensor.csv")) %>% as.data.frame()
+#Cross-validation for Model 1 ADC1
+set.seed(123)
+Model1 <- train(DISTANCE ~ ADC1, data = Sensors1, method = "lm", trControl = trainControl(method = "cv", number = 10))
+print(Model1)
+#Cross-validation for Model 2 ADC2
+set.seed(123)
+Model2 <- train(DISTANCE ~ ADC2, data = Sensors1, method = "lm", trControl = trainControl(method = "cv", number = 10))
+print(Model2)
