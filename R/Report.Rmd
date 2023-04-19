@@ -133,16 +133,7 @@ cat(sprintf("RMSE for DISTANCE y ADC2: %.2f\n", rmse2))
 
 - 1.2.4 Train a multilinear regression using the data from the 2 sensors to predict the distance to the wall.
 ```{r message=FALSE}
-# Import the librarys
-library (tidyverse)
-library (caret)
-library(psych)
 
-folder <- dirname(rstudioapi::getSourceEditorContext()$path)
-parentFolder <- dirname(folder)
-
-#Read CSV File
-Sensors1 <- read_csv(file = paste0(parentFolder, "/Datasets/Sensor.csv")) %>% as.data.frame()
 # Train multilinear regression model
 AllModel <- lm(DISTANCE ~ ADC1 + ADC2, data = Sensors1)
 # Predict using the trained model
@@ -157,16 +148,6 @@ cat(paste0("R-squared: ", r_squared, "\n"))
 ```
 - 1.2.5 Test the performance in your models by using cross-validation.
 ```{r message=FALSE}
-# Import the librarys
-library (tidyverse)
-library (caret)
-library(psych)
-
-folder <- dirname(rstudioapi::getSourceEditorContext()$path)
-parentFolder <- dirname(folder)
-
-#Read CSV File
-Sensors1 <- read_csv(file = paste0(parentFolder, "/Datasets/Sensor.csv")) %>% as.data.frame()
 #Cross-validation for Model 1 ADC1
 set.seed(123)
 Model1 <- train(DISTANCE ~ ADC1, data = Sensors1, method = "lm", trControl = trainControl(method = "cv", number = 10))
