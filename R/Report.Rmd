@@ -22,76 +22,135 @@ The HC-SR04 ultrasonic sensor works by sending out high frequency sound waves an
 
 ## \textcolor{red}{Code Arduino for sensor Ultrasonic HC-SR04}
 
-```{arduino}
-# define pins for HC-SR04
-#define trigPin 9
-#define echoPin 10
+``` {echo="FALSE"}
+# Pin digital 12 Trigger sensor
+const int Trigger = 12;   
+# Pin Digital 11 Echo sensor
+const int Echo = 11;
 
 void setup() {
-  # initialize serial communication
+  # Begin comunication Serial
   Serial.begin(9600);
-  
-  # define pin modes
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
+  # Set pin as Output
+  pinMode(Trigger, OUTPUT);
+  # Set pin as Input
+  pinMode(Echo, INPUT); 
+  digitalWrite(Trigger, LOW);
 }
 
-void loop() {
-  # trigger the sensor by setting the trigPin high for 10 microseconds
-  digitalWrite(trigPin, HIGH);
+void loop()
+{
+  # Variable for calculation time Echo
+  long t; 
+
+  digitalWrite(Trigger, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
+   # Send Pulse 10uS
+  digitalWrite(Trigger, LOW);
   
-  # read the echoPin and calculate the distance
-  long duration = pulseIn(echoPin, HIGH);
-  float distance_cm = duration * 0.034 / 2;
+  t = pulseIn(Echo, HIGH); 
   
-  # print the distance to the serial monitor
-  Serial.print("Distance: ");
-  Serial.print(distance_cm);
-  Serial.println(" cm");
-  
-  #wait for a moment before taking another measurement
-  delay(500);
+  Serial.print("Time: ");
+  Serial.print(t);      
+  Serial.println();
+  delay(2000);          
 }
 ```
+
 The Sharp GP2Y0A21 infrared sensor works by emitting an infrared (IR) beam and then measuring the distance to an object based on the reflection of that beam. The sensor consists of an IR emitter and a receiver.
 
 ## \textcolor{red}{Code Arduino for sensor SHARP GP2Y0A21}
 
-```{arduino 2}
+``` {echo="FALSE"}
 void setup() {
   // Comunicación seria a 9600 baudios
   Serial.begin(9600);
-  pinMode(13, OUTPUT);
 }
-
 
 void loop() {
-  
-  long tiempo=millis(); //tiempo antes de iniciar la lectura
-  int D_cm=distancia(20); //lectura de distancia
-  tiempo=millis()-tiempo; //milisegundos que duró la lectura
-  Serial.print("Tiempo de lectura: ");
-  Serial.print(tiempo); 
-  Serial.print("ms  Distancia: ");
-  Serial.print(D_cm);
-  Serial.println("  cm");
-  delay(100);
-}
-
-float distancia(int n)
-{
-  long suma=0;
-  for(int i=0;i<n;i++)
-  {
-    suma=suma+analogRead(A0);
-  }  
-  float adc=suma/n;
-  float distancia_cm = 17569.7 * pow(adc, -1.2062);
-  return(distancia_cm);
+  // Leemos la entrada analógica 0 :
+  int ADC_SHARP = analogRead(A0);
+  Serial.println(ADC_SHARP);
+  delay(10);
 }
 ```
 
 # 1.2 Predict Model
-- Pre-process your data (if required) and to perform an Exploratory Data Analysis.
+
+- 1.2.1 Pre-process your data (if required) and to perform an Exploratory Data Analysis.
+- 1.2.2 Train a linear model per sensor to predict the distance detected by each sensor.
+
+## \textcolor{red}{Analysis for the sensor ADC1 - ADC2}
+```{r message=FALSE}
+# Import the librarys
+library (tidyverse)
+library (caret)
+library(psych)
+
+folder <- dirname(rstudioapi::getSourceEditorContext()$path)
+parentFolder <- dirname(folder)
+
+#Read CSV File
+Sensors1 <- read_csv(file = paste0(parentFolder, "/Datasets/Sensor.csv")) %>% as.data.frame()
+#Show our Dataset Sensors1
+Sensors1
+# Give our a summary for variables ADC1 ADC2 And DISTANCE
+summary(Sensors1)
+# Histogram of the linear model ADC1
+hist(Sensors1$ADC1,breaks = 100)
+# Histogram of the linear model ADC2
+hist(Sensors1$ADC2,breaks = 100)
+
+pairs(Sensors1[-c(7,8)], pch = 21
+, bg = c("red", "green3", "blue")[unclass(Sensors1$DISTANCE)])
+# Select the corresponding columns
+Data1 <- Sensors1[, c("DISTANCE", "ADC1")]
+Data2 <- Sensors1[, c("DISTANCE", "ADC2")]
+# Split data into training and test sets ADC1 - ADC2
+set.seed(123)
+trainIndex1 <- createDataPartition(Data1$DISTANCE, p = 0.8, list = FALSE)
+trainData1 <- Data1[trainIndex1, ]
+testData1 <- Data1[-trainIndex1, ]
+
+trainIndex2 <- createDataPartition(Data2$DISTANCE, p = 0.8, list = FALSE)
+trainData2 <- Data2[trainIndex2, ]
+testData2 <- Data2[-trainIndex2, ]
+# Train the linear model for distance and ADC1 - ADC2
+Model1 <- lm(DISTANCE ~ ADC1, data = trainData1)
+Model2 <- lm(DISTANCE ~ ADC2, data = trainData2)
+# Evaluate model performance for distance and ADC1 - ADC2
+predictions1 <- predict(Model1, newdata = testData1)
+rmse1 <- sqrt(mean((predictions1 - testData1$DISTANCE)^2))
+cat(sprintf("RMSE for DISTANCE y ADC1: %.2f\n", rmse1))
+predictions2 <- predict(Model2, newdata = testData2)
+rmse2 <- sqrt(mean((predictions2 - testData2$DISTANCE)^2))
+cat(sprintf("RMSE for DISTANCE y ADC2: %.2f\n", rmse2))
+```
+
+>[!NOTE]
+   >
+   > An analysis of our predictors will be that the ADC1 sensor will have a better response to implement the ADC1 sensor.
+
+- 1.2.4 Train a multilinear regression using the data from the 2 sensors to predict the distance to the wall.
+```{r message=FALSE}
+# Import the librarys
+library (tidyverse)
+library (caret)
+library(psych)
+
+folder <- dirname(rstudioapi::getSourceEditorContext()$path)
+parentFolder <- dirname(folder)
+
+#Read CSV File
+Sensors1 <- read_csv(file = paste0(parentFolder, "/Datasets/Sensor.csv")) %>% as.data.frame()
+# Train multilinear regression model
+AllModel <- lm(DISTANCE ~ ADC1 + ADC2, data = Sensors1)
+# Predict using the trained model
+predicted_values <- predict(AllModel, Sensors1)
+# Evaluate model performance
+rmse <- caret::RMSE(predicted_values, Sensors1$DISTANCE)
+r_squared <- summary(AllModel)$r.squared
+# Print model summary and evaluation metrics
+print(summary(AllModel))
+cat(paste0("RMSE: ", rmse, "\n"))
+cat(paste0("R-squared: ", r_squared, "\n"))
