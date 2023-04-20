@@ -204,3 +204,19 @@ geom_smooth(method='lm', formula=y~x, se=FALSE, col='dodgerblue1') +
 theme_light()
 
 ```
+
+- 1.2.7 Discuss all your codes and results.
+
+ * The sensor 1 ADC1 has a linear behavior, this is an ultrasonic sensor that works by mechanical waves, training our model we obtain that this is the best response to use it as a prediction model for our distance variable.
+ 
+ * The sensor 2 ADC2 is a SHARP sensor of analog infrared operation, where its behavior is not linear, another characteristic of this sensor is the closer the object of detection, its variable will increase, it is inversely proportional to the distance.
+ 
+ * We have two Datasets the first one called Sensors1 which contains values for the training for the 3 models,
+the first model obtained a better response obtaining a RMSE value of 0.4127814 , which is an efficient predictor value to implement models for distance detection,
+
+ * The second model obtained a non-optimal response with an RMSE value of 6.9711404, however by performing a better data analysis we can improve the efficiency of our model.
+
+ * The third model is a multilinear model where we take into account both ADC1 and ADC2 sensors to make a distance prediction, the combination of these data gives us an RMSE of 0.34101 which tells us that the effectiveness of this combined model is good for predictions.
+
+* After analyzing the graphs and values obtained from our models, Model 1 is the most optimal after training to predict our variable which in this case is distance.
+ 
