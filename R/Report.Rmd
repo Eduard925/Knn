@@ -130,6 +130,7 @@ cat(sprintf("RMSE for DISTANCE y ADC2: %.2f\n", rmse2))
 >[!NOTE]
    >
    > An analysis of our predictors will be that the ADC1 sensor will have a better response to implement the ADC1 sensor.
+   > The value of RMSE closer to 0 will indicate a greater precision in the prediction of the implemented model.
 
 - 1.2.4 Train a multilinear regression using the data from the 2 sensors to predict the distance to the wall.
 ```{r message=FALSE}
@@ -156,3 +157,38 @@ print(Model1)
 set.seed(123)
 Model2 <- train(DISTANCE ~ ADC2, data = Sensors1, method = "lm", trControl = trainControl(method = "cv", number = 10))
 print(Model2)
+```
+# News prediction from the trainning Datasets
+To predict the distance from a model we created the dataset PModel.CSV containing data from the ADC1 and ADC2 sensor and sampled every 100mm.
+```{r message=FALSE}
+PModel <- read_csv(file = paste0(parentFolder, "/Datasets/PModel.csv")) %>% as.data.frame()
+#The head() function is very useful for getting a quick idea of the data in an object, especially if the object is large and you don't want to print the entire contents.
+head(PModel)
+#Summary of our Dataset
+summary(PModel)
+#create variable for predictions Firts Model
+P1 <- predict(Model1,newdata=PModel)
+print(P1)
+#Create variable for predictions Second Model
+P2 <- predict(Model2,newdata =PModel)
+print(P2)
+#Create variable for predictions model multilinear
+P3 <- predict(AllModel,newdata =PModel)
+print(P3)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
