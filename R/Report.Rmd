@@ -220,3 +220,14 @@ the first model obtained a better response obtaining a RMSE value of 0.4127814 ,
 
 * After analyzing the graphs and values obtained from our models, Model 1 is the most optimal after training to predict our variable which in this case is distance.
  
+*  RMSE is a measure of the average distance between the predicted and actual values, and it is calculated as the square root of the mean of the squared differences between the predicted and actual values.
+
+* MAE is a measure of the average absolute difference between the predicted and actual values, and it is calculated as the mean of the absolute differences between the predicted and actual values. 
+
+* R-squared (R²) is a statistical measure that represents the proportion of the variance in the dependent variable,ranges from 0 to 1, where 0 means that the model explains none of the variance and 1 means that the model explains all the variance.
+
+## \textcolor{red}{Predictions of a categorical variable}
+
+Develop a system (hardware and software) that includes the 2 sensors used in part 1. The system needs to let you
+capture data that is useful to determine if a wall in front of the system is flat, convex, or concave. 
+
