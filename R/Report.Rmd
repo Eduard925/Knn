@@ -77,15 +77,21 @@ void loop() {
 
 # 1.2 Predict Model
 
-- 1.2.1 Pre-process your data (if required) and to perform an Exploratory Data Analysis.
-- 1.2.2 Train a linear model per sensor to predict the distance detected by each sensor.
+-   1.2.1 Pre-process your data (if required) and to perform an Exploratory Data Analysis.
+-   1.2.2 Train a linear model per sensor to predict the distance detected by each sensor.
 
 ## \textcolor{red}{Analysis for the sensor ADC1 - ADC2}
+
+```{r message=FALSE}
+```
+
+
 ```{r message=FALSE}
 # Import the librarys
 library (tidyverse)
 library (caret)
 library(psych)
+library(ggplot2)
 
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 parentFolder <- dirname(folder)
@@ -127,12 +133,12 @@ rmse2 <- sqrt(mean((predictions2 - testData2$DISTANCE)^2))
 cat(sprintf("RMSE for DISTANCE y ADC2: %.2f\n", rmse2))
 ```
 
->[!NOTE]
-   >
-   > An analysis of our predictors will be that the ADC1 sensor will have a better response to implement the ADC1 sensor.
-   > The value of RMSE closer to 0 will indicate a greater precision in the prediction of the implemented model.
+> [!NOTE]
+>
+> An analysis of our predictors will be that the ADC1 sensor will have a better response to implement the ADC1 sensor. The value of RMSE closer to 0 will indicate a greater precision in the prediction of the implemented model.
 
-- 1.2.4 Train a multilinear regression using the data from the 2 sensors to predict the distance to the wall.
+-   1.2.4 Train a multilinear regression using the data from the 2 sensors to predict the distance to the wall.
+
 ```{r message=FALSE}
 
 # Train multilinear regression model
@@ -147,7 +153,9 @@ print(summary(AllModel))
 cat(paste0("RMSE: ", rmse, "\n"))
 cat(paste0("R-squared: ", r_squared, "\n"))
 ```
-- 1.2.5 Test the performance in your models by using cross-validation.
+
+-   1.2.5 Test the performance in your models by using cross-validation.
+
 ```{r message=FALSE}
 #Cross-validation for Model 1 ADC1
 set.seed(123)
@@ -158,8 +166,11 @@ set.seed(123)
 Model2 <- train(DISTANCE ~ ADC2, data = Sensors1, method = "lm", trControl = trainControl(method = "cv", number = 10))
 print(Model2)
 ```
+
 # News prediction from the trainning Datasets
+
 To predict the distance from a model we created the dataset PModel.CSV containing data from the ADC1 and ADC2 sensor and sampled every 100mm.
+
 ```{r message=FALSE}
 PModel <- read_csv(file = paste0(parentFolder, "/Datasets/PModel.csv")) %>% as.data.frame()
 #The head() function is very useful for getting a quick idea of the data in an object, especially if the object is large and you don't want to print the entire contents.
@@ -169,26 +180,27 @@ summary(PModel)
 #create variable for predictions Firts Model
 P1 <- predict(Model1,newdata=PModel)
 print(P1)
+#We plot the graph that relates the distance that is the predictor and the value of the ADC1 sensor.
+ggplot(PModel, aes(x=ADC1, y=P1)) +
+geom_point() +
+geom_smooth(method='lm', formula=y~x, se=FALSE, col='dodgerblue1') +
+theme_light()
+
 #Create variable for predictions Second Model
 P2 <- predict(Model2,newdata =PModel)
 print(P2)
+#We plot the graph that relates the distance that is the predictor and the value of the ADC2 sensor.
+ggplot(PModel, aes(x=ADC2, y=P2)) +
+geom_point() +
+geom_smooth(method='lm', formula=y~x, se=FALSE, col='dodgerblue1') +
+theme_light()
 #Create variable for predictions model multilinear
 P3 <- predict(AllModel,newdata =PModel)
 print(P3)
+#We plot the graph that relates the distance that is the predictor between the multi-linear model ADC1+ADC2.
+ggplot(PModel, aes(x=ADC1+ADC2, y=P3)) +
+geom_point() +
+geom_smooth(method='lm', formula=y~x, se=FALSE, col='dodgerblue1') +
+theme_light()
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
