@@ -157,6 +157,7 @@ cat(paste0("R-squared: ", r_squared, "\n"))
 -   1.2.5 Test the performance in your models by using cross-validation.
 
 ```{r message=FALSE}
+
 #Cross-validation for Model 1 ADC1
 set.seed(123)
 Model1 <- train(DISTANCE ~ ADC1, data = Sensors1, method = "lm", trControl = trainControl(method = "cv", number = 10))
@@ -231,3 +232,57 @@ the first model obtained a better response obtaining a RMSE value of 0.4127814 ,
 Develop a system (hardware and software) that includes the 2 sensors used in part 1. The system needs to let you
 capture data that is useful to determine if a wall in front of the system is flat, convex, or concave. 
 
+- 2.1  Data Acquisition
+
+For data acquisition we will use the above sensors to make measurements on different surfaces, and we will take 5 samples per 100mm for each surface.
+
+```{r message=FALSE}
+
+Shapes <- read_csv(file = paste0(parentFolder, "/Datasets/WallShapes.csv")) %>% as.data.frame() 
+
+head(Shapes)
+
+summary(Shapes)
+pairs.panels(Shapes[c("ADC1",
+"ADC2",
+"TYPE")]
+,pch=21, bg=c("red","green3","blue", "orange")[unclass(Shapes$TYPE)])
+
+```
+
+- 2.2 Predictive Model
+
+```{r message=FALSE}
+# Convert the 'TYPE' column to factor
+Shapes$TYPE <- as.factor(Shapes$TYPE)
+
+# Split the dataset into training and testing sets
+set.seed(123)
+trainIndex3 <- createDataPartition(Shapes$TYPE, p = 0.7, list = FALSE)
+train_datashapes <- Shapes[trainIndex3, ]
+test_datashapes <- Shapes[-trainIndex3, ]
+
+# Train the kNN model
+knn_model <- train(TYPE ~ ADC1 + ADC2, data = train_datashapes, method = "knn", trControl = trainControl(method = "cv"), tuneLength = 10)
+
+# Predict the shape of the wall on the test set
+Model1k <- predict(knn_model, newdata = test_datashapes)
+
+# Evaluate the model
+confusionMatrix(Model1k, test_datashapes$TYPE)
+
+# Train the kNN model on the full dataset
+Model2k <- train(TYPE ~ ., data = Shapes, method = "knn", trControl = trainControl(method = "cv"), tuneLength = 10)
+
+# Print the model's results
+print(Model2k)
+
+```
+- 2.2.3 Test Model
+```{r message=FALSE}
+PWallShapes1 <- read_csv(file = paste0(parentFolder, "/Datasets/PWallShapes.csv")) %>%
+as.data.frame()
+head(PWallShapes1)
+summary(PWallShapes1)
+
+```
